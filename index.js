@@ -10,11 +10,24 @@ let responder = (req, res, param) => {
 
 let routes = {
     "GET": {
-        "/": (req, res) =>
-            responder(req, res, `<h1>Get Method => / route with ${params.query.name}</h1>`)
+        "/": (req, res) => {
+            let filePath = __dirname + "/index.html";
+            responder(req, res, filePath)
+        }
         ,
-        "/home": (req, res) =>
-            responder(req, res, `<h1>Get Method => / route</h1> with ${params.query.name}`)
+        "/home": (req, res) => {
+            let filePath = __dirname + "/home.html";
+            responder(req, res, filePath)
+        }
+        ,
+        "/index.html": (req, res) => {
+            let filePath = __dirname + "/index.html";
+            responder(req, res, filePath)
+        },
+        "/about.html": (req, res) => {
+            let filePath = __dirname + "/about.html";
+            responder(req, res, filePath)
+        }
     },
     "POST": {
         "/": (req, res) =>
@@ -27,11 +40,13 @@ let routes = {
             let body = "";
             req.on("data", data => {
                 body += data;
+                if (body.length > 1024) {
+                    res.writeHead(403, { "Content-Type": "text/html" });
+                    res.end("<h1> File Size Too Big !</h>");
+                }
             })
             req.on("end", () => {
-                let query = qs.parse(body);
-
-                console.log(query.email);
+                console.log(query);
                 res.end();
             })
         }
