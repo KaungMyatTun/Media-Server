@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index</title>
+    <style>
+        .holders {
+            width: 500px;
+            margin: 20px auto;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .loginAction {
+            width: inherit;
+        }
+
+        input.nameinput {
+            width: 480px;
+            height: 45px;
+        }
+
+        button#login {
+            width: 100px;
+            height: 45px;
+            float: right;
+            margin-right: 15px;
+            margin-top: 10px;
+        }
+
+        .chatWrapper {
+            width: inherit;
+            height: 500px;
+            border: 1px solid #ddd;
+        }
+
+        input#message {
+            width: 400px;
+            height: 45px;
+        }
+
+        button#send {
+            width: 90px;
+            height: 50px;
+            margin-top: 10px;
+        }
+        .hide{
+            display: none;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="loginHolder holders">
+        <h1>Login</h1>
+        <div class="loginAction">
+            <input id="name" class="nameinput" /><br>
+            <button id="login">Login</button>
+        </div>
+    </div>
+    <div style="clear:both"></div>
+    <div class="chatHolder holders hide">
+        <h1> Chat </h1>
+        <div class="chatWrapper">
+            <p>Chat Message</p>
+        </div>
+        <div class="chatAction">
+            <input id="message" />
+            <button id="send">Send</button>
+        </div>
+    </div>
+</body>
+
+</html>

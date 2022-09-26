@@ -1,22 +1,24 @@
-require('dotenv').config()
+require('dotenv').config();
 let express = require('express'),
-    app = express(), 
-    path = require('path');
+    app = express(),
+    path = require('path'),
+    server = require('http').createServer(app),
+    hogan = require('hogan-express'),
+    {Server} = require('socket.io'), 
+    io = new Server(server);
 
-app.use(express.static(path.join('assets')));
+app.engine('html', hogan);
+app.set('view engine', 'html');
+app.use(express.static(path.join(__dirname, "assets")))
 
-app.listen(process.env.PORT, () => {
-    console.log("Sever is running at " + process.env.PORT);
+io.on('listening', function(){
+    console.log(`listening on port ${io.server.PORT}`);
 })
 
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + "/index.html");
+app.get('/login', (req,res)=>{
+    res.render('index');
 })
 
-app.get("/index", (req,res) => {
-    res.sendfile(__dirname + "/index.html")
+server.listen(process.env.PORT, () => {
+    console.log(`Server is running at ${process.env.PORT}`);
 })
-
-app.get('/about', (req, res) => {
-    res.sendfile(__dirname + "/about.html")
-}) 
