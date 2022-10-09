@@ -37,10 +37,11 @@
             width: inherit;
             height: 500px;
             border: 1px solid #ddd;
+            padding-left: 10px;
         }
 
         input#message {
-            width: 400px;
+            width: 390px;
             height: 45px;
         }
 
@@ -49,8 +50,14 @@
             height: 50px;
             margin-top: 10px;
         }
-        .hide{
+
+        .hide {
             display: none;
+        }
+
+        input {
+            padding-left: 10px;
+            font-size: 18px;
         }
     </style>
 
@@ -68,12 +75,50 @@
     <div class="chatHolder holders hide">
         <h1> Chat </h1>
         <div class="chatWrapper">
-            <p>Chat Message</p>
+            <p class="chatMsg"></p>
         </div>
         <div class="chatAction">
             <input id="message" />
             <button id="send">Send</button>
         </div>
     </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let socket = io.connect();
+
+        let loginHolder = document.querySelector('.loginHolder');
+        let chatHolder = document.querySelector('.chatHolder');
+        let name = document.querySelector('#name');
+        let loginbtn = document.querySelector('#login');
+        let message = document.querySelector('#message');
+        let send = document.querySelector('#send');
+        let chatMsg = document.querySelector('.chatMsg');
+
+        loginbtn.addEventListener('click', loginNow);
+        send.addEventListener('click', sendMsg);
+
+        function loginNow() {
+            // alert(name.value);
+            socket.emit('login', name.value);
+        }
+        function sendMsg() {
+            socket.emit('msg', message.value);
+            message.value = "";
+        }
+
+        socket.on('login-success', data => {
+            if(data){
+                loginHolder.classList.add('hide');
+                chatHolder.classList.remove('hide');
+            }
+        })
+
+        socket.on('income-msg', msg=>{
+            let data = chatMsg.innerText;
+            chatMsg.innerText = data + "\n" + msg;
+        })
+    </script>
 </body>
+
 </html>
