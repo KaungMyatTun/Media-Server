@@ -38,13 +38,29 @@ app.get('/login', (req, res) => {
   socket.broadcast.to(socketid).emit("chat-data", username + " : " + data);
  */
 
+let userMap = new Map();
+let room1 = "public";
+let room2 = "private";
+
 io.sockets.on('connection', (socket) => {
     socket.on('login', data => {
         socket.username = data;
-        io.to(socket.id).emit('login-success', true);
-    });
+        userMap.set(socket.username, socket.id);
+        // io.to(socket.id).emit('login-success', true);
+        // socket.join(room1);
+        if(socket.username == 'w' || socket.username == 'x'){
+            socket.join(room1);
+            socket.userroom = room1;
+            socket.emit('login-success', true);
+        }else{
+            socket.join(room2);
+            socket.userroom = room2;
+        }
+
+    }); 
     socket.on('msg', data => {
-        io.emit('income-msg', socket.username + ": " + data);
+        // io.emit('income-msg', socket.username + ": " + data); 
+        io.in(socket.userroom).emit('income-msg', socket.username + " : " + data);
     })
 })
 
