@@ -1,70 +1,57 @@
 require('dotenv').config();
 let express = require('express'),
     app = express(),
-    path = require('path'),
-    server = require('http').createServer(app),
-    hogan = require('hogan-express'),
-    { Server } = require('socket.io'),
-    io = new Server(server),
-    helper = require('./bmlibby');
+    bodyParser = require('body-parser'),
+    jwt = require('jsonwebtoken'),
+    passport = require('passport'),
+    JwtStrategy = require('passport-jwt').Strategy,
+    ExtractJwt = require('passport-jwt').ExtractJwt;
 
-
-app.engine('html', hogan);
-app.set('view engine', 'html');
-app.use(express.static(path.join(__dirname, "assets")))
-
-io.on('listening', function () {
-    console.log(`listening on port ${io.server.PORT}`);
-})
-
-app.get('/login', (req, res) => {
-    res.render('index');
-})
-
-/**
-  #sending to all users
-  io.emit("key", "val");
-
-  #send message only to sender client
-  socket.emit("key", "val");
-
-  #send to all listener except sender
-  socket.broadcast.emit("chat-data", username + " : " + data);
-
-  #send message to certain user
-  io.to(socket.id).emit();
-
-  #send to specifi socket-id (specific user)
-  socket.broadcast.to(socketid).emit("chat-data", username + " : " + data);
- */
+let opts = {}
+opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+opts.secretOrKey = process.env.SECRETKEY;
 
 let userMap = new Map();
-let room1 = "public";
-let room2 = "private";
+userMap.set("aa@gmail.com", { name: "aa", email: "aa@gmail.com", pass: "123" });
 
-io.sockets.on('connection', (socket) => {
-    socket.on('login', data => {
-        socket.username = data;
-        userMap.set(socket.username, socket.id);
-        // io.to(socket.id).emit('login-success', true);
-        // socket.join(room1);
-        if(socket.username == 'w' || socket.username == 'x'){
-            socket.join(room1);
-            socket.userroom = room1;
-            socket.emit('login-success', true);
-        }else{
-            socket.join(room2);
-            socket.userroom = room2;
+
+let myStrategy = new JwtStrategy(opts, function (payload, done) {
+    let user = userMap.get(payload.email);
+    if (user != null || user != undefined) {
+        done(null, user);
+    } else {
+        done("No user with that email", null);
+    }
+})
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+passport.use(myStrategy);
+
+app.post('/login', (req, res) => {
+    let email = req.body.email;
+    let pass = req.body.password;
+
+    let user = userMap.get(email);
+    if (user != null || user != undefined) {
+        if (user.pass == pass) {
+            let payload = { email: email };
+            let token = jwt.sign(payload, process.env.SECRETKEY);
+            res.json({ token: token });
+        } else {
+            res.send({ data: "Password Error" })
         }
-
-    }); 
-    socket.on('msg', data => {
-        // io.emit('income-msg', socket.username + ": " + data); 
-        io.in(socket.userroom).emit('income-msg', socket.username + " : " + data);
-    })
+    } else {
+        res.send({ data: "Invalid email address" });
+    }
 })
 
-
-server.listen(process.env.PORT, () => {
-    console.log(`Server is running at ${process.env.PORT}`);
+app.get('/free', (req, res) => {
+    res.send({ data: "Free route hee !" });
 })
+
+app.get('/secret', passport.authenticate('jwt', { session: false }), (req, res) => {
+    res.send({ data: "Secret route" });
+})
+
+app.listen(process.env.PORT);
