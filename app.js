@@ -1,57 +1,30 @@
 require('dotenv').config();
-let express = require('express'),
-    app = express(),
-    bodyParser = require('body-parser'),
-    jwt = require('jsonwebtoken'),
-    passport = require('passport'),
-    JwtStrategy = require('passport-jwt').Strategy,
-    ExtractJwt = require('passport-jwt').ExtractJwt;
+let express = require('express');
+let multer = require('multer');
+app = express(),
+    upload = multer();
 
-let opts = {}
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-opts.secretOrKey = process.env.SECRETKEY;
-
-let userMap = new Map();
-userMap.set("aa@gmail.com", { name: "aa", email: "aa@gmail.com", pass: "123" });
-
-
-let myStrategy = new JwtStrategy(opts, function (payload, done) {
-    let user = userMap.get(payload.email);
-    if (user != null || user != undefined) {
-        done(null, user);
-    } else {
-        done("No user with that email", null);
+let storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './assets/upload');
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + "_" + file.originalname);
     }
-})
+});
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-passport.use(myStrategy);
+var upload = multer({ storage: storage });
 
-app.post('/login', (req, res) => {
-    let email = req.body.email;
-    let pass = req.body.password;
+/// ----- single image upload ------
+app.post('/upload', upload.single('image'), function (req, res, next) {
+    console.log(req);
+    res.send(req.file.originalname);
+});
 
-    let user = userMap.get(email);
-    if (user != null || user != undefined) {
-        if (user.pass == pass) {
-            let payload = { email: email };
-            let token = jwt.sign(payload, process.env.SECRETKEY);
-            res.json({ token: token });
-        } else {
-            res.send({ data: "Password Error" })
-        }
-    } else {
-        res.send({ data: "Invalid email address" });
-    }
-})
-
-app.get('/free', (req, res) => {
-    res.send({ data: "Free route hee !" });
-})
-
-app.get('/secret', passport.authenticate('jwt', { session: false }), (req, res) => {
-    res.send({ data: "Secret route" });
-})
+// ========= multiple images upload ============
+app.post('/multiupload', upload.array('images', 2), function (req, res, next) {
+    console.log(req.files.length);
+    res.send(req.files);
+});
 
 app.listen(process.env.PORT);
